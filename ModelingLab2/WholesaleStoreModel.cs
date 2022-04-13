@@ -6,96 +6,21 @@ using System.Threading.Tasks;
 
 namespace ModelingLab2
 {
-    class Clerk
-    {
-        public const int TimeWayToWarehouse = 1;
-        public const int TimeWayFromWarehouse = 1;
-        public const int TimeCalculation = 2;
-        public int CompletedOrders { get; private set; }
-        public int CurrentOrders { get; private set; }
-        public bool IsBusy { get; private set; }
-        public double WorkTime
-        {
-            get; private set;
-        }
-        public double WorkloadInHours()
-        {
-            return Math.Round(WorkTime / 60.0, 5);
-        }
-        public double WorkloadInPercents(double shiftTime)
-        {
-            return Math.Round((WorkTime / shiftTime) * 100, 5);
-        }
-        static public int GetTimeOfSearch(int numberOfOrders)
-        {
-            return numberOfOrders * 3;
-        }
-        public int GetCompleteOrderTime(int numberOfOrders)
-        {
-            return TimeWayToWarehouse + GetTimeOfSearch(numberOfOrders) + TimeWayFromWarehouse + TimeCalculation;
-        }
-        public int TimeOfFinishOfService
-        {
-            get; protected set;
-        }
-        public void StartService(int numberOfOrders, int time)
-        {
-            IsBusy = true;
-            TimeOfFinishOfService = time;
-            TimeOfFinishOfService += GetCompleteOrderTime(numberOfOrders);
-            CurrentOrders = numberOfOrders;
-        }
-        public void FinishServices()
-        {
-            CompletedOrders += CurrentOrders;
-            CurrentOrders = 0;
-            IsBusy = false;
-            TimeOfFinishOfService = -1;
-        }//освобождение клерка
-
-        public Clerk()
-        {
-            IsBusy = false;
-            TimeOfFinishOfService = -1; 
-            CompletedOrders = 0;
-        }
-    }
-    class Order
-    {
-        private int time;
-        public int Time
-        {
-            get
-            {
-                return time;
-            }
-            protected set
-            {
-                if (value < 0)
-                {
-                    throw new ArgumentOutOfRangeException(
-                          "Время не может быть меньше или равным 0.");
-                }
-                time = value;
-            }
-        }
-        public Order(int time)
-        {
-            Time = time;
-        }
-    }
+    
     class WholesaleStoreModel
     {
         Queue<Order> queue = new Queue<Order>();
         private readonly List<Clerk> clerks = new List<Clerk>();
         public StringBuilder journal { get; private set; }
-        private const int OrderInterval = 2;
-        private const int MaxClients = 6;
+        public int OrderInterval { get; private set; }
+        public int MaxClients { get; private set; }
         private Random rand = new Random();
         public int TimeOfShift { get; private set; }
         public int CurrentTime { get; private set; }
+        public int OrderNum { get; private set; }
+        public int clerkNum { get; private set; }
         public int TimeUntilNextClient { get; private set; }
-        public int TotalOrders()
+        private int TotalOrders()
         {
             int orders = 0;
             foreach (var clerk in clerks)
@@ -104,67 +29,90 @@ namespace ModelingLab2
             }
             return orders;
         }
-        public double TotalWorkloadInHours() 
+        public WholesaleStoreModel (Params parameters)
         {
-            double workLoad = 0;
-            foreach (Clerk c in clerks)
-            {
-                workLoad += c.WorkloadInHours();
-            }
-            return workLoad;
-        }
-        public WholesaleStoreModel (int time)
-        {
+            journal = new StringBuilder();
             for (int i = 0; i < 3; i++)
             {
-                clerks.Add(new Clerk());
+                clerks.Add(new Clerk(parameters.TimeFromWarehouse, parameters.TimeToWarehouse, parameters.CalcTime));
             }
-            TimeOfShift = time; 
+            TimeOfShift = parameters.ModelingTime; 
             TimeUntilNextClient = 0;
+            OrderInterval = parameters.ClientIntervalTime;
+            OrderNum = 1;
             CurrentTime = 0;
-            journal = new StringBuilder();
+            MaxClients = parameters.MaxClients;
         }
-        public void Run()
+        private string GetTime(int time)
         {
-            for (int i = 0; i < TimeOfShift; i++)
+            StringBuilder hoursAndMinutes = new StringBuilder();
+            int hours = time / 60;
+            if (hours != 0)
+                hoursAndMinutes.Append(hours + " ч. ");
+            int minutes = time % 60;
+            hoursAndMinutes.Append(minutes + " мин.");
+            return hoursAndMinutes.ToString();
+        }
+        public string GetJournal()
+        {
+            return journal.ToString();
+        }
+        public void UpdateSystem(object sender, EventArgs e)
+        {
+            CurrentTime++;
+            if (TimeUntilNextClient <= OrderInterval && TimeUntilNextClient > 0)
             {
-                CurrentTime = i;
-                if(TimeUntilNextClient <= OrderInterval && TimeUntilNextClient > 0)
-                {
-                    TimeUntilNextClient--;
-                }
-                else
-                {
-                    queue.Enqueue(new Order(CurrentTime));
-                    TimeUntilNextClient = OrderInterval -1;
-                    journal.AppendLine($"{CurrentTime} минут: прибыл клиент в очередь");
-                }
-                int clerkNum = 0;
-                foreach (Clerk clerk in clerks)
-                {
-                    if (!clerk.IsBusy)
-                    {
-                        int numberOfOrders = 0;
-                        while (queue.Count > 0 && numberOfOrders != MaxClients)
-                        {
-                            queue.Dequeue();
-                            numberOfOrders++;
-                        }
-                        if (numberOfOrders != 0 && (CurrentTime + clerk.GetCompleteOrderTime(numberOfOrders) <= TimeOfShift))
-                        {
-                            clerk.StartService(numberOfOrders, CurrentTime);
-                            journal.AppendLine($"{CurrentTime} минут: клерк {clerkNum+1} взял {numberOfOrders} заказ(ов) на {clerk.GetCompleteOrderTime(numberOfOrders)} минут");
-                        }
-                    }
-                    if(clerk.TimeOfFinishOfService == CurrentTime)
-                    {
-                        clerk.FinishServices(); 
-                        journal.AppendLine($"{CurrentTime} минут: клерк {clerkNum + 1} освободился");
-                    }
-                    clerkNum++;
-                }
+                TimeUntilNextClient--;
             }
-            journal.AppendLine();
+            else
+            {
+                queue.Enqueue(new Order(CurrentTime, OrderNum));
+                TimeUntilNextClient = OrderInterval - 1;
+                journal.AppendLine($"{GetTime(CurrentTime)}: прибыл {OrderNum} клиент в очередь");
+                journal.AppendLine($"\t{queue.Count()} заказов в очереди");
+                OrderNum++;
+            }
+            clerkNum = 0;
+            foreach (Clerk clerk in clerks)
+            {
+                if (!clerk.IsBusy)
+                {
+                    int numberOfOrders = 0;
+                    Queue<Order> tempQueue = new Queue<Order>(queue);
+                    while (tempQueue.Count > 0 && numberOfOrders != MaxClients)
+                    {
+                        tempQueue.Dequeue();
+                        numberOfOrders++;
+                    }
+                    if (numberOfOrders != 0 && (CurrentTime + clerk.GetCompleteOrderTime(numberOfOrders) <= TimeOfShift))
+                    {
+                        journal.AppendLine($"{GetTime(CurrentTime)}: клерк {clerkNum + 1} взял {numberOfOrders} заказ(ов) на {clerk.GetCompleteOrderTime(numberOfOrders)} минут");
+                        for (int j = 0; j < numberOfOrders; j++)
+                        {
+                            journal.AppendLine($"\tВремя ожидания {queue.Peek().Number} клиента: {CurrentTime - queue.Peek().TimeOfArrival} минут");
+                            queue.Dequeue();
+                        }
+                        clerk.StartService(numberOfOrders, CurrentTime);
+                        journal.AppendLine($"\t{queue.Count()} заказов в очереди");
+                    }
+                }
+                if (clerk.FinishServiceTime == CurrentTime)
+                {
+                    clerk.FinishServices();
+                    journal.AppendLine($"{GetTime(CurrentTime)}: клерк {clerkNum + 1} освободился");
+                }
+                clerkNum++;
+            }
+            journal.AppendLine("-----");
+        }
+        public string GetStatisitcs()
+        {
+            string stats = "";
+            stats += ($"Общее количество выполненных заказов: {TotalOrders()}\n");
+            stats += ($"Общее количество невыполненных заказов: {queue.Count()}\n");
+            for (int i = 0; i < clerks.Count; i++)
+                stats += ($"  Загрузка клерка {i + 1} в часах: {GetTime(clerks[i].WorkTime)} и в % от общего времени работы: {clerks[i].WorkloadInPercents(TimeOfShift)}%\n");
+            return stats;
         }
     }
 }
