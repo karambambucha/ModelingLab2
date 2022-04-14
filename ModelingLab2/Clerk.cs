@@ -27,7 +27,10 @@ namespace ModelingLab2
         }
         public int GetCompleteOrderTime(int numberOfOrders)
         {
-            return TimeWayToWarehouse + GetTimeOfSearch(numberOfOrders) + TimeWayFromWarehouse + TimeCalculation;
+            if (numberOfOrders > 0)
+                return TimeWayToWarehouse + GetTimeOfSearch(numberOfOrders) + TimeWayFromWarehouse + TimeCalculation;
+            else
+                return 0;
         }
         public void StartService(List<Order> orders, int time)
         {
