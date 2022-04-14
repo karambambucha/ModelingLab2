@@ -18,6 +18,7 @@ namespace ModelingLab2
         public int TimeFromWarehouse { get; set; }
         public int CalcTime { get; set; }
         public int MaxClients { get; set; }
+        public int Clerks { get; set; }
     }
     public partial class Form1 : Form
     {
@@ -61,6 +62,7 @@ namespace ModelingLab2
                 parameters.TimeFromWarehouse = (int)timeFromWarehouse.Value;
                 parameters.CalcTime = (int)calcTime.Value;
                 parameters.MaxClients = (int)maxClients.Value;
+                parameters.Clerks = (int)clerkNum.Value;
                 model = new WholesaleStoreModel(parameters);
                 PlusMinute.Tick += new EventHandler(model.UpdateSystem);
                 PlusMinute.Tick += new EventHandler(UpdateRichTextBox);

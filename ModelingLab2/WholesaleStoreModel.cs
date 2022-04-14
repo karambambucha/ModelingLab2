@@ -18,8 +18,8 @@ namespace ModelingLab2
         public int TimeOfShift { get; private set; }
         public int CurrentTime { get; private set; }
         public int OrderNum { get; private set; }
-        public int clerkNum { get; private set; }
         public int TimeUntilNextClient { get; private set; }
+        public int ClerkNumber { get; private set; }
         private int TotalOrders()
         {
             int orders = 0;
@@ -29,19 +29,41 @@ namespace ModelingLab2
             }
             return orders;
         }
+        private void GetToWork(Clerk clerk)
+        {
+            int numberOfOrders = 0;
+            Queue<Order> tempQueue = new Queue<Order>(queue);
+            while (tempQueue.Count > 0 && numberOfOrders != MaxClients)
+            {
+                tempQueue.Dequeue();
+                numberOfOrders++;
+            }
+            if (numberOfOrders != 0 && (CurrentTime + clerk.GetCompleteOrderTime(numberOfOrders) <= TimeOfShift))
+            {
+                List<Order> orders = new List<Order>();
+                for (int j = 0; j < numberOfOrders; j++)
+                {
+                    orders.Add(queue.Dequeue());
+                }
+                clerk.StartService(orders, CurrentTime);
+                journal.AppendLine($"Клерк {clerk.ID} взял {numberOfOrders} заказ(ов) на {clerk.GetCompleteOrderTime(numberOfOrders)} минут");
+                journal.AppendLine($"\t{queue.Count()} заказов в очереди");
+            }
+        }
         public WholesaleStoreModel (Params parameters)
         {
-            journal = new StringBuilder();
-            for (int i = 0; i < 3; i++)
-            {
-                clerks.Add(new Clerk(parameters.TimeFromWarehouse, parameters.TimeToWarehouse, parameters.CalcTime));
-            }
+            ClerkNumber = parameters.Clerks;
             TimeOfShift = parameters.ModelingTime; 
-            TimeUntilNextClient = 0;
             OrderInterval = parameters.ClientIntervalTime;
+            MaxClients = parameters.MaxClients;
+            TimeUntilNextClient = 0;
             OrderNum = 1;
             CurrentTime = 0;
-            MaxClients = parameters.MaxClients;
+            journal = new StringBuilder();
+            for (int i = 0; i < ClerkNumber; i++)
+            {
+                clerks.Add(new Clerk(parameters.TimeFromWarehouse, parameters.TimeToWarehouse, parameters.CalcTime, i + 1));
+            }
         }
         private string GetTime(int time)
         {
@@ -60,6 +82,7 @@ namespace ModelingLab2
         public void UpdateSystem(object sender, EventArgs e)
         {
             CurrentTime++;
+            journal.AppendLine($"{GetTime(CurrentTime)}");
             if (TimeUntilNextClient <= OrderInterval && TimeUntilNextClient > 0)
             {
                 TimeUntilNextClient--;
@@ -68,40 +91,37 @@ namespace ModelingLab2
             {
                 queue.Enqueue(new Order(CurrentTime, OrderNum));
                 TimeUntilNextClient = OrderInterval - 1;
-                journal.AppendLine($"{GetTime(CurrentTime)}: прибыл {OrderNum} клиент в очередь");
+                journal.AppendLine($"Прибыл {OrderNum} клиент в очередь");
                 journal.AppendLine($"\t{queue.Count()} заказов в очереди");
                 OrderNum++;
             }
-            clerkNum = 0;
-            foreach (Clerk clerk in clerks)
+            var freeClerks = from c in clerks where !(c.IsBusy) select c;
+            List<Clerk> freeClerksList = freeClerks.ToList();
+            for (int i = freeClerksList.Count() - 1; i >= 1; i--)
             {
-                if (!clerk.IsBusy)
+                int j = rand.Next(i + 1);
+                var temp = freeClerksList[j];
+                freeClerksList[j] = freeClerksList[i];
+                freeClerksList[i] = temp;
+            }
+            foreach (Clerk clerk in freeClerksList)
+            {
+                GetToWork(clerk);
+            }
+            var clerksToBeFree = from c in clerks where (c.IsBusy) && c.FinishServiceTime == CurrentTime select c;
+            foreach (Clerk clerk1 in clerksToBeFree)
+            {
+                if (clerk1.FinishServiceTime == CurrentTime)
                 {
-                    int numberOfOrders = 0;
-                    Queue<Order> tempQueue = new Queue<Order>(queue);
-                    while (tempQueue.Count > 0 && numberOfOrders != MaxClients)
+                    journal.AppendLine($"Клерк {clerk1.ID} закончил с {clerk1.CurrentOrders.Count()} заказами");
+                    foreach (var order in clerk1.CurrentOrders)
                     {
-                        tempQueue.Dequeue();
-                        numberOfOrders++;
+                        journal.AppendLine($"\tВремя ожидания {order.Number} клиента: {CurrentTime - order.TimeOfArrival} минут");
                     }
-                    if (numberOfOrders != 0 && (CurrentTime + clerk.GetCompleteOrderTime(numberOfOrders) <= TimeOfShift))
-                    {
-                        journal.AppendLine($"{GetTime(CurrentTime)}: клерк {clerkNum + 1} взял {numberOfOrders} заказ(ов) на {clerk.GetCompleteOrderTime(numberOfOrders)} минут");
-                        for (int j = 0; j < numberOfOrders; j++)
-                        {
-                            journal.AppendLine($"\tВремя ожидания {queue.Peek().Number} клиента: {CurrentTime - queue.Peek().TimeOfArrival} минут");
-                            queue.Dequeue();
-                        }
-                        clerk.StartService(numberOfOrders, CurrentTime);
-                        journal.AppendLine($"\t{queue.Count()} заказов в очереди");
-                    }
+                    clerk1.FinishServices();
+                    journal.AppendLine($"Клерк {clerk1.ID} освободился");
+                    GetToWork(clerk1);
                 }
-                if (clerk.FinishServiceTime == CurrentTime)
-                {
-                    clerk.FinishServices();
-                    journal.AppendLine($"{GetTime(CurrentTime)}: клерк {clerkNum + 1} освободился");
-                }
-                clerkNum++;
             }
             journal.AppendLine("-----");
         }

@@ -56,6 +56,9 @@ namespace ModelingLab2
             this.label15 = new System.Windows.Forms.Label();
             this.maxClients = new System.Windows.Forms.NumericUpDown();
             this.label16 = new System.Windows.Forms.Label();
+            this.label17 = new System.Windows.Forms.Label();
+            this.clerkNum = new System.Windows.Forms.NumericUpDown();
+            this.label18 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.modelingTime)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.milliseconds)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.clientIntervalTime)).BeginInit();
@@ -63,6 +66,7 @@ namespace ModelingLab2
             ((System.ComponentModel.ISupportInitialize)(this.timeFromWarehouse)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.calcTime)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.maxClients)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.clerkNum)).BeginInit();
             this.SuspendLayout();
             // 
             // label1
@@ -79,13 +83,13 @@ namespace ModelingLab2
             this.richTextBox1.Location = new System.Drawing.Point(276, 43);
             this.richTextBox1.Name = "richTextBox1";
             this.richTextBox1.ReadOnly = true;
-            this.richTextBox1.Size = new System.Drawing.Size(512, 395);
+            this.richTextBox1.Size = new System.Drawing.Size(512, 424);
             this.richTextBox1.TabIndex = 2;
             this.richTextBox1.Text = "";
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(15, 415);
+            this.button1.Location = new System.Drawing.Point(14, 444);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(255, 23);
             this.button1.TabIndex = 3;
@@ -112,7 +116,7 @@ namespace ModelingLab2
             // 
             // milliseconds
             // 
-            this.milliseconds.Location = new System.Drawing.Point(101, 389);
+            this.milliseconds.Location = new System.Drawing.Point(100, 418);
             this.milliseconds.Maximum = new decimal(new int[] {
             60000,
             0,
@@ -135,7 +139,7 @@ namespace ModelingLab2
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(12, 391);
+            this.label2.Location = new System.Drawing.Point(11, 420);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(83, 17);
             this.label2.TabIndex = 6;
@@ -144,7 +148,7 @@ namespace ModelingLab2
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(188, 391);
+            this.label3.Location = new System.Drawing.Point(187, 420);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(24, 17);
             this.label3.TabIndex = 7;
@@ -153,7 +157,7 @@ namespace ModelingLab2
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(64, 369);
+            this.label4.Location = new System.Drawing.Point(63, 398);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(144, 17);
             this.label4.TabIndex = 8;
@@ -377,11 +381,54 @@ namespace ModelingLab2
             this.label16.TabIndex = 23;
             this.label16.Text = "Максимальное количество \r\nклиентов на клерка";
             // 
+            // label17
+            // 
+            this.label17.AutoSize = true;
+            this.label17.Location = new System.Drawing.Point(221, 350);
+            this.label17.Name = "label17";
+            this.label17.Size = new System.Drawing.Size(36, 17);
+            this.label17.TabIndex = 28;
+            this.label17.Text = "чел.";
+            // 
+            // clerkNum
+            // 
+            this.clerkNum.Location = new System.Drawing.Point(14, 348);
+            this.clerkNum.Maximum = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
+            this.clerkNum.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.clerkNum.Name = "clerkNum";
+            this.clerkNum.Size = new System.Drawing.Size(207, 22);
+            this.clerkNum.TabIndex = 27;
+            this.clerkNum.Value = new decimal(new int[] {
+            2,
+            0,
+            0,
+            0});
+            // 
+            // label18
+            // 
+            this.label18.AutoSize = true;
+            this.label18.Location = new System.Drawing.Point(13, 328);
+            this.label18.Name = "label18";
+            this.label18.Size = new System.Drawing.Size(143, 17);
+            this.label18.TabIndex = 26;
+            this.label18.Text = "Количество клерков";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(800, 479);
+            this.Controls.Add(this.label17);
+            this.Controls.Add(this.clerkNum);
+            this.Controls.Add(this.label18);
             this.Controls.Add(this.label15);
             this.Controls.Add(this.maxClients);
             this.Controls.Add(this.label16);
@@ -416,6 +463,7 @@ namespace ModelingLab2
             ((System.ComponentModel.ISupportInitialize)(this.timeFromWarehouse)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.calcTime)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.maxClients)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.clerkNum)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -448,6 +496,9 @@ namespace ModelingLab2
         private System.Windows.Forms.Label label15;
         private System.Windows.Forms.NumericUpDown maxClients;
         private System.Windows.Forms.Label label16;
+        private System.Windows.Forms.Label label17;
+        private System.Windows.Forms.NumericUpDown clerkNum;
+        private System.Windows.Forms.Label label18;
     }
 }
 
