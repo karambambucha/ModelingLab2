@@ -33,12 +33,12 @@ namespace ModelingLab2
         {
             int numberOfOrders = 0;
             Queue<Order> tempQueue = new Queue<Order>(queue);
-            while (tempQueue.Count > 0 && numberOfOrders != MaxClients)
+            while (tempQueue.Count > 0 && numberOfOrders != MaxClients && (CurrentTime + clerk.GetCompleteOrderTime(numberOfOrders) <= TimeOfShift))
             {
                 tempQueue.Dequeue();
                 numberOfOrders++;
             }
-            if (numberOfOrders != 0 && (CurrentTime + clerk.GetCompleteOrderTime(numberOfOrders) <= TimeOfShift))
+            if (numberOfOrders != 0)
             {
                 List<Order> orders = new List<Order>();
                 for (int j = 0; j < numberOfOrders; j++)
