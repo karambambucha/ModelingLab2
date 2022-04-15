@@ -46,9 +46,11 @@ namespace ModelingLab2
             if (model.CurrentTime >= modelingTime.Value && PlusMinute.Enabled)
             {
                 PlusMinute.Stop();
+                PlusMinute.Tick -= new EventHandler(model.UpdateSystem);
+                PlusMinute.Tick -= new EventHandler(UpdateRichTextBox);
+                PlusMinute.Tick -= new EventHandler(CheckStopCondition);
                 richTextBox1.Text += model.GetStatisitcs();
                 MessageBox.Show(model.GetStatisitcs());
-                model = null;
             }
         }
         
@@ -56,6 +58,8 @@ namespace ModelingLab2
         {
             try
             {
+                richTextBox1.Text = "";
+                
                 Params parameters = new Params();
                 parameters.ModelingTime = (int)modelingTime.Value;
                 parameters.ClientIntervalTime = (int)clientIntervalTime.Value;
