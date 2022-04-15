@@ -11,6 +11,7 @@ namespace ModelingLab2
     {
         Queue<Order> queue = new Queue<Order>();
         private readonly List<Clerk> clerks = new List<Clerk>();
+        private readonly List<int> waitTimes = new List<int>();
         public StringBuilder journal { get; private set; }
         public int OrderInterval { get; private set; }
         public int MaxClients { get; private set; }
@@ -29,28 +30,53 @@ namespace ModelingLab2
             }
             return orders;
         }
-        private void GetToWork(Clerk clerk)
+        private void GetToWork(List<Clerk> clerks)
         {
             int numberOfOrders = 0;
-            while (queue.Count - numberOfOrders > 0 && numberOfOrders != MaxClients) 
+            List<int> clerkOrders = new List<int>();
+            while (queue.Count - numberOfOrders > 0 && numberOfOrders < MaxClients * clerks.Count()) 
             {
                 numberOfOrders++;
             }
-            while (CurrentTime + clerk.GetCompleteOrderTime(numberOfOrders) > TimeOfShift)
+            int i = clerks.Count;
+            foreach (var clerk in clerks)
             {
-                numberOfOrders--;
+                int num = numberOfOrders / i;
+                numberOfOrders -= num;
+                clerkOrders.Add(num);
+                i--;
             }
-            if (numberOfOrders != 0)
+            for (int j = 0; j < clerks.Count(); j++)
+                while (CurrentTime + clerks[j].GetCompleteOrderTime(clerkOrders[j]) > TimeOfShift)
+                    clerkOrders[j]--;
+
+            for (int k = 0; k < clerks.Count(); k++) 
             {
-                List<Order> orders = new List<Order>();
-                for (int j = 0; j < numberOfOrders; j++)
+                if (clerkOrders[k] != 0)
                 {
-                    orders.Add(queue.Dequeue());
+                    List<Order> orders = new List<Order>();
+                    for (int j = 0; j < clerkOrders[k]; j++)
+                    {
+                        orders.Add(queue.Dequeue());
+                    }
+                    clerks[k].StartService(orders, CurrentTime);
+                    journal.AppendLine($"Клерк {clerks[k].ID} взял {clerkOrders[k]} заказ(ов) на {clerks[k].GetCompleteOrderTime(clerkOrders[k])} минут");
+                    journal.AppendLine($"\t{queue.Count()} заказов в очереди");
                 }
-                clerk.StartService(orders, CurrentTime);
-                journal.AppendLine($"Клерк {clerk.ID} взял {numberOfOrders} заказ(ов) на {clerk.GetCompleteOrderTime(numberOfOrders)} минут");
-                journal.AppendLine($"\t{queue.Count()} заказов в очереди");
             }
+        }
+        private List<Clerk> GetFreeClerks()
+        {
+            var freeClerks = from c in clerks where !(c.IsBusy) select c;
+            List<Clerk> freeClerksList = freeClerks.ToList();
+            for (int i = freeClerksList.Count() - 1; i >= 1; i--)
+            {
+                int j = rand.Next(i + 1);
+                var temp = freeClerksList[j];
+                freeClerksList[j] = freeClerksList[i];
+                freeClerksList[i] = temp;
+            }
+            return freeClerksList;
         }
         public WholesaleStoreModel (Params parameters)
         {
@@ -95,34 +121,37 @@ namespace ModelingLab2
                 TimeUntilNextClient = OrderInterval - 1;
                 journal.AppendLine($"Прибыл {OrderNum} клиент в очередь");
                 journal.AppendLine($"\t{queue.Count()} заказов в очереди");
+                journal.Append($"\tСвободные клерки: ");
+                bool isFree = false;
+                foreach(var clerk in clerks)
+                {
+                    if (!clerk.IsBusy)
+                    {
+                        journal.Append("№" + clerk.ID + " ");
+                        isFree = true;
+                    }
+                }
+                if (!isFree)
+                    journal.Append("отсутствуют\n");
+                else
+                    journal.Append("\n");
                 OrderNum++;
             }
-            var freeClerks = from c in clerks where !(c.IsBusy) select c;
-            List<Clerk> freeClerksList = freeClerks.ToList();
-            for (int i = freeClerksList.Count() - 1; i >= 1; i--)
-            {
-                int j = rand.Next(i + 1);
-                var temp = freeClerksList[j];
-                freeClerksList[j] = freeClerksList[i];
-                freeClerksList[i] = temp;
-            }
-            foreach (Clerk clerk in freeClerksList)
-            {
-                GetToWork(clerk);
-            }
+            GetToWork(GetFreeClerks());
             var clerksToBeFree = from c in clerks where (c.IsBusy) && c.FinishServiceTime == CurrentTime select c;
-            foreach (Clerk clerk1 in clerksToBeFree)
+            foreach (Clerk clerk in clerksToBeFree)
             {
-                if (clerk1.FinishServiceTime == CurrentTime)
+                if (clerk.FinishServiceTime == CurrentTime)
                 {
-                    journal.AppendLine($"Клерк {clerk1.ID} закончил с {clerk1.CurrentOrders.Count()} заказами");
-                    foreach (var order in clerk1.CurrentOrders)
+                    journal.AppendLine($"Клерк {clerk.ID} закончил с {clerk.CurrentOrders.Count()} заказами");
+                    foreach (var order in clerk.CurrentOrders)
                     {
                         journal.AppendLine($"\tВремя ожидания {order.Number} клиента: {CurrentTime - order.TimeOfArrival} минут");
+                        waitTimes.Add(CurrentTime - order.TimeOfArrival);
                     }
-                    clerk1.FinishServices();
-                    journal.AppendLine($"Клерк {clerk1.ID} освободился");
-                    GetToWork(clerk1);
+                    clerk.FinishServices();
+                    journal.AppendLine($"Клерк {clerk.ID} освободился");
+                    GetToWork(GetFreeClerks());
                 }
             }
             journal.AppendLine("-----");
@@ -134,6 +163,9 @@ namespace ModelingLab2
             stats += ($"Общее количество невыполненных заказов: {queue.Count()}\n");
             for (int i = 0; i < clerks.Count; i++)
                 stats += ($"  Загрузка клерка {i + 1} в часах: {GetTime(clerks[i].WorkTime)} и в % от общего времени работы: {clerks[i].WorkloadInPercents(TimeOfShift)}%\n");
+            stats += ($"Среднее время ожидания клиента: {waitTimes.Average()}\n");
+            stats += ($"Мин время ожидания клиента: {waitTimes.Min()}\n");
+            stats += ($"Макс время ожидания клиента: {waitTimes.Max()}\n");
             return stats;
         }
     }

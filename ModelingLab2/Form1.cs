@@ -48,6 +48,7 @@ namespace ModelingLab2
                 PlusMinute.Stop();
                 richTextBox1.Text += model.GetStatisitcs();
                 MessageBox.Show(model.GetStatisitcs());
+                model = null;
             }
         }
         

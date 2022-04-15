@@ -407,7 +407,7 @@ namespace ModelingLab2
             this.clerkNum.Size = new System.Drawing.Size(207, 22);
             this.clerkNum.TabIndex = 27;
             this.clerkNum.Value = new decimal(new int[] {
-            2,
+            3,
             0,
             0,
             0});
