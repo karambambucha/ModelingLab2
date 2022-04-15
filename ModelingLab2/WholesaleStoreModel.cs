@@ -123,7 +123,7 @@ namespace ModelingLab2
                 journal.AppendLine($"\t{queue.Count()} заказов в очереди");
                 journal.Append($"\tСвободные клерки: ");
                 bool isFree = false;
-                foreach(var clerk in clerks)
+                foreach (var clerk in clerks)
                 {
                     if (!clerk.IsBusy)
                     {
@@ -136,8 +136,8 @@ namespace ModelingLab2
                 else
                     journal.Append("\n");
                 OrderNum++;
+                
             }
-            GetToWork(GetFreeClerks());
             var clerksToBeFree = from c in clerks where (c.IsBusy) && c.FinishServiceTime == CurrentTime select c;
             foreach (Clerk clerk in clerksToBeFree)
             {
@@ -151,9 +151,9 @@ namespace ModelingLab2
                     }
                     clerk.FinishServices();
                     journal.AppendLine($"Клерк {clerk.ID} освободился");
-                    GetToWork(GetFreeClerks());
                 }
             }
+            GetToWork(GetFreeClerks());
             journal.AppendLine("-----");
         }
         public string GetStatisitcs()
