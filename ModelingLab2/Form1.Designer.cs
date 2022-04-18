@@ -1,7 +1,7 @@
 ﻿
 namespace ModelingLab2
 {
-    partial class Form1
+    partial class ModelingForm
     {
         /// <summary>
         /// Обязательная переменная конструктора.

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ModelingLab2
 {
@@ -54,6 +52,7 @@ namespace ModelingLab2
             IsBusy = false;
             FinishServiceTime = -1;
             CompletedOrders = 0;
+            WorkTime = 0;
             TimeWayToWarehouse = timeToWH;
             TimeWayFromWarehouse = timeFromWH;
             TimeCalculation = timeCalc;

@@ -2,11 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-
 namespace ModelingLab2
 {
-    
     class WholesaleStoreModel
     {
         Queue<Order> queue = new Queue<Order>();
@@ -25,9 +22,7 @@ namespace ModelingLab2
         {
             int orders = 0;
             foreach (var clerk in clerks)
-            {
                 orders += clerk.CompletedOrders;
-            }
             return orders;
         }
         private void GetToWork(List<Clerk> clerks)
@@ -35,9 +30,7 @@ namespace ModelingLab2
             int numberOfOrders = 0;
             List<int> clerkOrders = new List<int>();
             while (queue.Count - numberOfOrders > 0 && numberOfOrders < MaxClients * clerks.Count()) 
-            {
                 numberOfOrders++;
-            }
             int i = clerks.Count;
             foreach (var clerk in clerks)
             {
@@ -56,9 +49,7 @@ namespace ModelingLab2
                 {
                     List<Order> orders = new List<Order>();
                     for (int j = 0; j < clerkOrders[k]; j++)
-                    {
                         orders.Add(queue.Dequeue());
-                    }
                     clerks[k].StartService(orders, CurrentTime);
                     journal.AppendLine($"Клерк {clerks[k].ID} взял {clerkOrders[k]} заказ(ов) на {clerks[k].GetCompleteOrderTime(clerkOrders[k])} минут");
                     journal.AppendLine($"\t{queue.Count()} заказов в очереди");
@@ -89,9 +80,7 @@ namespace ModelingLab2
             CurrentTime = 0;
             journal = new StringBuilder();
             for (int i = 0; i < ClerkNumber; i++)
-            {
                 clerks.Add(new Clerk(parameters.TimeFromWarehouse, parameters.TimeToWarehouse, parameters.CalcTime, i + 1));
-            }
         }
         private string GetTime(int time)
         {
@@ -112,9 +101,7 @@ namespace ModelingLab2
             CurrentTime++;
             journal.AppendLine($"{GetTime(CurrentTime)}");
             if (TimeUntilNextClient <= OrderInterval && TimeUntilNextClient > 0)
-            {
                 TimeUntilNextClient--;
-            }
             else
             {
                 queue.Enqueue(new Order(CurrentTime, OrderNum));
@@ -136,7 +123,6 @@ namespace ModelingLab2
                 else
                     journal.Append("\n");
                 OrderNum++;
-                
             }
             var clerksToBeFree = from c in clerks where (c.IsBusy) && c.FinishServiceTime == CurrentTime select c;
             foreach (Clerk clerk in clerksToBeFree)
@@ -154,7 +140,6 @@ namespace ModelingLab2
                 }
             }
             GetToWork(GetFreeClerks());
-            journal.AppendLine("-----");
         }
         public string GetStatisitcs()
         {
