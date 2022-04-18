@@ -47,6 +47,7 @@ namespace ModelingLab2
             try
             {
                 richTextBox1.Text = "";
+                
                 Params parameters = new Params();
                 parameters.ModelingTime = (int)modelingTime.Value;
                 parameters.ClientIntervalTime = (int)clientIntervalTime.Value;
